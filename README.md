@@ -15,11 +15,11 @@
 - [x] **Forge**: Minecraft Forge 服务端核心。
 - [x] **Fabric**: Fabric 服务端核心。
 - [x] **NeoForge**: NeoForge 服务端核心。
-- [] **Paper**: Paper 服务端核心。
-- [] **Spigot**: Spigot 服务端核心。
-- [] **Bukkit**: Bukkit 服务端核心。
-- [] **CatServer**: CatServer 服务端核心。
-- [] **Mohist**: Mohist 服务端核心。
+- [ ] **Paper**: Paper 服务端核心。
+- [ ] **Spigot**: Spigot 服务端核心。
+- [ ] **Bukkit**: Bukkit 服务端核心。
+- [ ] **CatServer**: CatServer 服务端核心。
+- [ ] **Mohist**: Mohist 服务端核心。
 
 ## 目录结构
 
