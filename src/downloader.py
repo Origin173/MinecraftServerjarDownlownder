@@ -43,42 +43,19 @@ class BMCLAPIDownloader:
         """
         parts = []
         # 分割主版本号和构建号，例如 "1.20.1-47.1.12-beta" -> "1.20.1", "47.1.12-beta"
-        main_version_parts = version_str.split('-', 1) # Split only on the first '-'
+        main_version_parts = version_str.split('-', 1) 
         
-        # Handle the MC version part (e.g., "1.20.1")
         mc_version_nums = [int(x) if x.isdigit() else x for x in main_version_parts[0].split('.')]
         parts.extend(mc_version_nums)
 
         if len(main_version_parts) > 1:
             build_info = main_version_parts[1]
-            # Split build info further by '.' and potentially by non-digits for suffixes
-            # Using re.split to handle numbers and non-numbers
             sub_parts = re.split(r'(\d+)', build_info)
             for sub_part in sub_parts:
-                if sub_part: # Filter out empty strings from re.split
+                if sub_part: 
                     if sub_part.isdigit():
                         parts.append(int(sub_part))
                     else:
-                        # For non-numeric parts (e.g., 'beta', 'alpha', 'pre'),
-                        # prepend a character to ensure they sort lexicographically after numbers,
-                        # or specifically handle common pre-release terms.
-                        # For reverse sorting, we want 'beta' to come *after* stable numbers.
-                        # A common strategy is to assign large numbers to stable versions and
-                        # smaller/negative numbers to pre-releases, or use a tuple for comparison.
-                        
-                        # Let's use a tuple for (is_numeric, value)
-                        # Higher value for stable, lower for pre-release
-                        # Example: ('beta', -1), ('alpha', -2) for reverse sorting
-                        # Or just regular string comparison, ensuring 'beta' comes after numbers
-                        
-                        # For reverse sorting, 'beta' should effectively be "smaller" than numbers.
-                        # We can add a high sorting value for stable versions and a low one for pre-releases.
-                        # Or, simplest for now: treat all numeric parts as numbers, others as strings.
-                        # For reverse sorting, 'beta' needs to be handled carefully.
-                        # A robust way is to convert things into (numeric_value, string_suffix_value)
-                        
-                        # Simpler: convert to lowercase and treat as string.
-                        # In reverse sort, 'z' is "smaller" than 'a'
                         parts.append(sub_part.lower())
         return tuple(parts) 
 
@@ -94,7 +71,7 @@ class BMCLAPIDownloader:
         if data and "versions" in data:
             # 过滤掉一些非release版本，或者根据需要进行排序
             versions = [v['id'] for v in data['versions'] if v['type'] == 'release']
-            versions.sort(key=lambda s: list(map(int, s.split('.'))), reverse=True) # 按照版本号降序排序
+            versions.sort(key=lambda s: list(map(int, s.split('.'))), reverse=True) 
             self.signals.log_message.emit(f"成功获取 {len(versions)} 个 Minecraft 版本。")
             return versions
         self.signals.log_message.emit("获取 Minecraft 版本失败。")
@@ -143,53 +120,7 @@ class BMCLAPIDownloader:
         optifine_versions = self._get_json(optifine_url)
         if optifine_versions:
             supported_types.append("optifine")
-  
-  
-        # 以下内容未实现
-        # # 检查 Paper 是否支持该MC版本（官方Fill v3 API）
-        # try:
-        #     paper_versions_url = "https://fill.papermc.io/v3/projects/paper/versions"
-        #     paper_data = requests.get(paper_versions_url, timeout=5).json()
-        #     if 'versions' in paper_data and mc_version in paper_data['versions']:
-        #         supported_types.append("paper")
-        # except Exception:
-        #     pass
 
-        # # 检查 Bukkit 是否支持该MC版本（官方API）
-        # try:
-        #     bukkit_versions_url = "https://api.getbukkit.org/craftbukkit/versions"
-        #     bukkit_data = requests.get(bukkit_versions_url, timeout=5).json()
-        #     if isinstance(bukkit_data, list) and mc_version in bukkit_data:
-        #         supported_types.append("bukkit")
-        # except Exception:
-        #     pass
-
-        # # 检查 Spigot 是否支持该MC版本（官方API）
-        # try:
-        #     spigot_versions_url = "https://api.getbukkit.org/spigot/versions"
-        #     spigot_data = requests.get(spigot_versions_url, timeout=5).json()
-        #     if isinstance(spigot_data, list) and mc_version in spigot_data:
-        #         supported_types.append("spigot")
-        # except Exception:
-        #     pass
-
-        # # 检查 CatServer 是否支持该MC版本（通过目录检测）
-        # try:
-        #     catserver_url = f"https://download.catserver.cn/{mc_version}/"
-        #     resp = requests.head(catserver_url, timeout=5)
-        #     if resp.status_code == 200:
-        #         supported_types.append("catserver")
-        # except Exception:
-        #     pass
-
-        # # 检查 Mohist 是否支持该MC版本（官方API）
-        # try:
-        #     mohist_versions_url = "https://mohistmc.com/api/v2/versions"
-        #     mohist_data = requests.get(mohist_versions_url, timeout=5).json()
-        #     if isinstance(mohist_data, dict) and mc_version in mohist_data:
-        #         supported_types.append("mohist")
-        # except Exception:
-        #     pass
         return sorted(list(set(supported_types))) # 去重并排序
 
     def get_core_versions(self, mc_version, server_type):
@@ -272,90 +203,6 @@ class BMCLAPIDownloader:
                 versions.sort(key=self._parse_version_string, reverse=True)
             if not versions:
                 self.signals.log_message.emit(f"未找到 {mc_version} 的 Optifine 核心版本。")
-        
-        # 以下内容未实现
-        # elif server_type == "bukkit":
-        #     url = f"{self.BASE_URL}/bukkit/list/{mc_version}"
-        #     bukkit_list = self._get_json(url)
-        #     if bukkit_list:
-        #         versions = [str(v['version']) for v in bukkit_list if 'version' in v]
-        #         versions.sort(key=self._parse_version_string, reverse=True)
-        #     # 官方API补充
-        #     if not versions:
-        #         bukkit_builds_url = f"https://api.getbukkit.org/craftbukkit/versions/{mc_version}"
-        #         try:
-        #             builds = requests.get(bukkit_builds_url, timeout=8).json()
-        #             if isinstance(builds, list):
-        #                 versions = [str(b) for b in builds]
-        #                 versions.sort(key=lambda x: int(x) if x.isdigit() else x, reverse=True)
-        #         except Exception:
-        #             pass
-        #     if not versions:
-        #         self.signals.log_message.emit(f"未找到 {mc_version} 的 Bukkit 核心版本。")
-        
-        # elif server_type == "paper":
-        #     # fill.papermc.io v3 API 获取所有构建号
-        #     builds_url = f"https://fill.papermc.io/v3/projects/paper/versions/{mc_version}/builds"
-        #     try:
-        #         builds_data = requests.get(builds_url, timeout=8).json()
-        #         if 'builds' in builds_data and isinstance(builds_data['builds'], list):
-        #             versions = [str(b['build']) for b in builds_data['builds'] if 'build' in b]
-        #             versions = [str(v) for v in versions]
-        #             versions.sort(key=lambda x: int(x), reverse=True)
-        #     except Exception:
-        #         pass
-        #     if not versions:
-        #         self.signals.log_message.emit(f"未找到 {mc_version} 的 Paper 核心版本。")
-        
-        # elif server_type == "spigot":
-        #     # 官方API获取所有spigot版本
-        #     spigot_builds_url = f"https://api.getbukkit.org/spigot/versions/{mc_version}"
-        #     try:
-        #         builds = requests.get(spigot_builds_url, timeout=8).json()
-        #         if isinstance(builds, list):
-        #             versions = [str(b) for b in builds]
-        #             versions = [str(v) for v in versions]
-        #             versions.sort(key=lambda x: int(x) if x.isdigit() else x, reverse=True)
-        #     except Exception:
-        #         pass
-        #     if not versions:
-        #         self.signals.log_message.emit(f"未找到 {mc_version} 的 Spigot 核心版本。")
-        
-        # elif server_type == "catserver":
-        #     # 目录检测，假定文件名格式 CatServer-{mc_version}-{version}.jar
-        #     import re
-        #     from bs4 import BeautifulSoup
-        #     try:
-        #         page = requests.get(f"https://download.catserver.cn/{mc_version}/", timeout=8).text
-        #         soup = BeautifulSoup(page, "html.parser")
-        #         links = [a.get('href') for a in soup.find_all('a') if a.get('href')]
-        #         versions = []
-        #         for link in links:
-        #             # 兼容所有 CatServer jar 文件名
-        #             m = re.match(r'CatServer-[^/]+-(.+)\\.jar', link)
-        #             if m:
-        #                 versions.append(str(m.group(1)))
-        #         versions = list(set(versions))
-        #         versions = [str(v) for v in versions]
-        #         versions.sort(reverse=True)
-        #     except Exception:
-        #         pass
-        #     if not versions:
-        #         self.signals.log_message.emit(f"未找到 {mc_version} 的 CatServer 核心版本。")
-        
-        # elif server_type == "mohist":
-        #     # 官方API获取所有mohist版本
-        #     mohist_versions_url = f"https://mohistmc.com/api/v2/versions/{mc_version}"
-        #     try:
-        #         builds = requests.get(mohist_versions_url, timeout=8).json()
-        #         if isinstance(builds, list):
-        #             versions = [str(b) for b in builds]
-        #             versions = [str(v) for v in versions]
-        #             versions.sort(reverse=True)
-        #     except Exception:
-        #         pass
-        #     if not versions:
-        #         self.signals.log_message.emit(f"未找到 {mc_version} 的 Mohist 核心版本。")
 
         return versions
 
@@ -368,92 +215,41 @@ class BMCLAPIDownloader:
         file_name = None
 
         if server_type == "vanilla":
-            # 原版下载链接通常直接用MC版本号
             download_url = f"https://launcher.mojang.com/v1/objects/{core_version_info}/server.jar"
             file_name = f"minecraft_server-{mc_version}.jar"
             self.signals.log_message.emit(f"获取到 Vanilla 官方源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "forge":
-            # Forge 通常在其官方网站提供下载
             download_url = f"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{mc_version}/{core_version_info}/forge-{core_version_info}-installer.jar"
             file_name = f"forge-{mc_version}-{core_version_info}.jar"
             self.signals.log_message.emit(f"获取到 Forge 官方源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "fabric":
-            # Fabric 的下载链接较为复杂，需通过其官方API获取
             download_url = f"https://meta.fabricmc.net/v2/versions/installer/{mc_version}"
             file_name = f"fabric-installer-{mc_version}.jar"
             self.signals.log_message.emit(f"获取到 Fabric 官方源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "neoforge":
-            # Neoforge 通常在其官方网站提供下载
             download_url = f"https://github.com/Neoforged/Neoforge-MC/releases/download/{core_version_info}/Neoforge-{core_version_info}.jar"
             file_name = f"neoforge-{mc_version}-{core_version_info}.jar"
             self.signals.log_message.emit(f"获取到 Neoforge 官方源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "liteloader":
-            # Liteloader 通常在其官方网站提供下载
             download_url = f"https://github.com/LCClass/LiteLoader/releases/download/{core_version_info}/LiteLoader-{core_version_info}.jar"
             file_name = f"liteloader-{mc_version}-{core_version_info}.jar"
             self.signals.log_message.emit(f"获取到 Liteloader 官方源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "optifine":
-            # Optifine 的下载链接较为特殊，需通过其官方网站获取
             download_url = f"https://optifine.net/download/OptiFine{mc_version}{core_version_info}.jar"
             file_name = f"optifine-{mc_version}-{core_version_info}.jar"
             self.signals.log_message.emit(f"获取到 Optifine 官方源下载链接: {download_url}")
             return download_url, file_name
 
-        # 以下内容未实现
-        # elif server_type == "paper":
-        #     # fill.papermc.io v3 API 获取下载链接
-        #     build = str(core_version_info)
-        #     build_url = f"https://fill.papermc.io/v3/projects/paper/versions/{mc_version}/builds/{build}"
-        #     try:
-        #         build_data = requests.get(build_url, timeout=8).json()
-        #         downloads = build_data.get('downloads', {})
-        #         application = downloads.get('application', {})
-        #         download_url = application.get('url')
-        #         file_name = application.get('name')
-        #         if download_url and file_name:
-        #             self.signals.log_message.emit(f"获取到 Paper 官方源下载链接: {download_url}")
-        #             return download_url, file_name
-        #     except Exception as e:
-        #         self.signals.log_message.emit(f"Paper 下载信息获取失败: {e}")
-        #     return None, None
-
-        # elif server_type == "bukkit":
-        #     # 官方API获取下载链接
-        #     download_url = f"https://download.getbukkit.org/craftbukkit/craftbukkit-{core_version_info}.jar"
-        #     file_name = f"bukkit-{mc_version}-{core_version_info}.jar"
-        #     self.signals.log_message.emit(f"获取到 Bukkit 官方源下载链接: {download_url}")
-        #     return download_url, file_name
-
-        # elif server_type == "spigot":
-        #     # 官方API获取下载链接
-        #     download_url = f"https://download.getbukkit.org/spigot/spigot-{core_version_info}.jar"
-        #     file_name = f"spigot-{mc_version}-{core_version_info}.jar"
-        #     self.signals.log_message.emit(f"获取到 Spigot 官方源下载链接: {download_url}")
-        #     return download_url, file_name
-
-        # elif server_type == "catserver":
-        #     # 直接拼接CatServer官方目录
-        #     download_url = f"https://download.catserver.cn/{mc_version}/CatServer-{mc_version}-{core_version_info}.jar"
-        #     file_name = f"catserver-{mc_version}-{core_version_info}.jar"
-        #     self.signals.log_message.emit(f"获取到 CatServer 官方源下载链接: {download_url}")
-        #     return download_url, file_name
-
-        # elif server_type == "mohist":
-        #     # 官方API获取下载链接
-        #     download_url = f"https://mohistmc.com/api/v2/download/{mc_version}/{core_version_info}"
-        #     file_name = f"mohist-{mc_version}-{core_version_info}.jar"
-        #     self.signals.log_message.emit(f"获取到 Mohist 官方源下载链接: {download_url}")
-        #     return download_url, file_name
 
         self.signals.log_message.emit("未能获取到有效的下载链接。")
         return None, None
