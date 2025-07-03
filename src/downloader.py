@@ -215,7 +215,7 @@ class BMCLAPIDownloader:
         file_name = None
 
         if server_type == "vanilla":
-            download_url = f"https://bmclapi2.bangbang93.com/version/{mc_version}/server"
+            download_url = f"https://bmclapi2.bangbang93.com/version/{mc_version}/server/"
             file_name = f"minecraft_server-{mc_version}.jar"
             self.signals.log_message.emit(f"获取到 Vanilla BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
@@ -247,8 +247,10 @@ class BMCLAPIDownloader:
                 return None, None
 
         elif server_type == "neoforge":
-            download_url = f"https://bmclapi2.bangbang93.com/neoforge/version/{core_version_info}/download/installer.jar"
-            file_name = f"neoforge-{mc_version}-{core_version_info}-installer.jar"
+            neoforge_version = core_version_info.replace("neoforge-", "")
+            file_type = "installer.jar"  
+            download_url = f"https://bmclapi2.bangbang93.com/neoforge/version/{neoforge_version}/download/{file_type}"
+            file_name = f"neoforge-{mc_version}-{neoforge_version}-{file_type}"
             self.signals.log_message.emit(f"获取到 Neoforge BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
 
@@ -274,7 +276,20 @@ class BMCLAPIDownloader:
     def download_file(self, url, dest_folder, file_name):
         """
         下载文件到指定文件夹。
+        下载前先检查链接是否存在，避免404。
         """
+        # 检查链接是否存在
+        try:
+            head_resp = requests.head(url, timeout=10, allow_redirects=True)
+            if head_resp.status_code != 200:
+                self.signals.log_message.emit(f"文件未找到或未同步: {url}")
+                self.signals.download_finished.emit("", False)
+                return
+        except Exception as e:
+            self.signals.log_message.emit(f"检测文件链接失败: {e}")
+            self.signals.download_finished.emit("", False)
+            return
+
         if not os.path.exists(dest_folder):
             os.makedirs(dest_folder)
         file_size = None
