@@ -11,15 +11,15 @@
 * 显示下载进度和日志信息。
 
 ## 目前支持列表
-* - [x]**Vanilla**: 原版 Minecraft 服务端核心。
-* - [x]**Forge**: Minecraft Forge 服务端核心。
-* - [x]**Fabric**: Fabric 服务端核心。
-* - [x]**NeoForge**: NeoForge 服务端核心。
-* - []**Paper**: Paper 服务端核心。
-* - []**Spigot**: Spigot 服务端核心。
-* - []**Bukkit**: Bukkit 服务端核心。
-* - []**CatServer**: CatServer 服务端核心。
-* - []**Mohist**: Mohist 服务端核心。
+- [x]**Vanilla**: 原版 Minecraft 服务端核心。
+- [x]**Forge**: Minecraft Forge 服务端核心。
+- [x]**Fabric**: Fabric 服务端核心。
+- [x]**NeoForge**: NeoForge 服务端核心。
+- []**Paper**: Paper 服务端核心。
+- []**Spigot**: Spigot 服务端核心。
+- []**Bukkit**: Bukkit 服务端核心。
+- []**CatServer**: CatServer 服务端核心。
+- []**Mohist**: Mohist 服务端核心。
 
 ## 目录结构
 
@@ -41,8 +41,8 @@ minecraft_server_downloader/
 
 1.  **克隆或下载项目：**
     ```bash
-    git clone https://github.com/Origin173/minecraft_server_downloader.git
-    cd minecraft_server_downloader
+    git clone https://github.com/Origin173/MinecraftServerjarDownloader.git
+    cd MinecraftServerjarDownloader
     ```
     （如果你没有使用 Git，请手动创建上述文件和目录结构，并复制内容）
 
@@ -74,6 +74,5 @@ minecraft_server_downloader/
 
 ## 许可证
 本项目使用 MIT 许可证。请查看 [LICENSE](LICENSE) 文件了解详细信息。
-```
 
 "# MinecraftServerjarDownlownder" 
