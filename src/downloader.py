@@ -208,48 +208,65 @@ class BMCLAPIDownloader:
 
     def get_download_url_and_filename(self, mc_version, server_type, core_version_info):
         """
-        根据Minecraft版本、服务端类型和核心版本信息获取下载链接和文件名。
+        根据Minecraft版本、服务端类型和核心版本信息获取BMCLAPI镜像源下载链接和文件名。
         """
         self.signals.log_message.emit(f"正在获取 {mc_version} {server_type} {core_version_info} 的下载链接...")
         download_url = None
         file_name = None
 
         if server_type == "vanilla":
-            download_url = f"https://launcher.mojang.com/v1/objects/{core_version_info}/server.jar"
+            download_url = f"https://bmclapi2.bangbang93.com/version/{mc_version}/server"
             file_name = f"minecraft_server-{mc_version}.jar"
-            self.signals.log_message.emit(f"获取到 Vanilla 官方源下载链接: {download_url}")
+            self.signals.log_message.emit(f"获取到 Vanilla BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "forge":
-            download_url = f"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{mc_version}/{core_version_info}/forge-{core_version_info}-installer.jar"
-            file_name = f"forge-{mc_version}-{core_version_info}.jar"
-            self.signals.log_message.emit(f"获取到 Forge 官方源下载链接: {download_url}")
+            download_url = f"https://bmclapi2.bangbang93.com/forge/download?mcversion={mc_version}&version={core_version_info}&category=installer&format=jar"
+            file_name = f"forge-{mc_version}-{core_version_info}-installer.jar"
+            self.signals.log_message.emit(f"获取到 Forge BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "fabric":
-            download_url = f"https://meta.fabricmc.net/v2/versions/installer/{mc_version}"
-            file_name = f"fabric-installer-{mc_version}.jar"
-            self.signals.log_message.emit(f"获取到 Fabric 官方源下载链接: {download_url}")
-            return download_url, file_name
+            loader_version = None
+            installer_version = None
+            if core_version_info.startswith("loader-") and "-installer-" in core_version_info:
+                try:
+                    loader_version = core_version_info.split("loader-")[1].split("-installer-")[0]
+                    installer_version = core_version_info.split("-installer-")[1]
+                except Exception:
+                    loader_version = None
+                    installer_version = None
+            if loader_version and installer_version:
+                # 始终使用官方源下载
+                download_url = f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}/{loader_version}/{installer_version}/server/jar"
+                file_name = f"fabric-server-mc.{mc_version}-loader.{loader_version}-installer.{installer_version}.jar"
+                self.signals.log_message.emit(f"获取到 Fabric 官方源下载链接: {download_url}")
+                return download_url, file_name
+            else:
+                self.signals.log_message.emit("Fabric core_version_info 格式错误，无法生成下载链接。")
+                return None, None
 
         elif server_type == "neoforge":
-            download_url = f"https://github.com/Neoforged/Neoforge-MC/releases/download/{core_version_info}/Neoforge-{core_version_info}.jar"
-            file_name = f"neoforge-{mc_version}-{core_version_info}.jar"
-            self.signals.log_message.emit(f"获取到 Neoforge 官方源下载链接: {download_url}")
+            download_url = f"https://bmclapi2.bangbang93.com/neoforge/version/{core_version_info}/download/installer.jar"
+            file_name = f"neoforge-{mc_version}-{core_version_info}-installer.jar"
+            self.signals.log_message.emit(f"获取到 Neoforge BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "liteloader":
-            download_url = f"https://github.com/LCClass/LiteLoader/releases/download/{core_version_info}/LiteLoader-{core_version_info}.jar"
+            download_url = f"https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/{core_version_info}/liteloader-{core_version_info}.jar"
             file_name = f"liteloader-{mc_version}-{core_version_info}.jar"
-            self.signals.log_message.emit(f"获取到 Liteloader 官方源下载链接: {download_url}")
+            self.signals.log_message.emit(f"获取到 Liteloader BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
 
         elif server_type == "optifine":
-            download_url = f"https://optifine.net/download/OptiFine{mc_version}{core_version_info}.jar"
+            if '_' in core_version_info:
+                type_part, patch_part = core_version_info.split('_', 1)
+            else:
+                type_part, patch_part = core_version_info, ''
+            download_url = f"https://bmclapi2.bangbang93.com/optifine/{mc_version}/{type_part}/{patch_part}"
             file_name = f"optifine-{mc_version}-{core_version_info}.jar"
-            self.signals.log_message.emit(f"获取到 Optifine 官方源下载链接: {download_url}")
+            self.signals.log_message.emit(f"获取到 Optifine BMCLAPI 镜像源下载链接: {download_url}")
             return download_url, file_name
-
 
         self.signals.log_message.emit("未能获取到有效的下载链接。")
         return None, None
@@ -259,17 +276,35 @@ class BMCLAPIDownloader:
         下载文件到指定文件夹。
         """
         if not os.path.exists(dest_folder):
-            os.makedirs(dest_folder) 
+            os.makedirs(dest_folder)
+        file_size = None
+        try:
+            #  HEAD 请求获取文件大小
+            head_resp = requests.head(url, timeout=10, allow_redirects=True)
+            if head_resp.ok:
+                cl = head_resp.headers.get('content-length')
+                try:
+                    file_size = int(cl) if cl and int(cl) > 0 else None
+                except Exception:
+                    file_size = None
+        except Exception:
+            file_size = None  
         try:
             response = requests.get(url, stream=True, timeout=10)
             response.raise_for_status()
-            file_size = int(response.headers.get('content-length', 0))
-            block_size = 1024 
+            block_size = 1024
+            downloaded_size = 0
             with open(os.path.join(dest_folder, "temp_file"), 'wb') as file:
                 for data in response.iter_content(block_size):
                     file.write(data)
-                    downloaded_size = file.tell()
-                    self.signals.progress_update.emit(int(downloaded_size / file_size * 100))
+                    downloaded_size += len(data)
+                    if file_size:
+                        percent = int(downloaded_size / file_size * 100)
+                        percent = min(percent, 100)
+                        self.signals.progress_update.emit(percent)
+                    else:
+                        # 没有文件大小时，无法准确显示进度，只能发100
+                        self.signals.progress_update.emit(100)
             os.rename(os.path.join(dest_folder, "temp_file"), os.path.join(dest_folder, file_name))
             self.signals.log_message.emit(f"文件下载完成: {file_name}")
             self.signals.download_finished.emit(os.path.join(dest_folder, file_name), True)

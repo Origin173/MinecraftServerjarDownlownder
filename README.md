@@ -15,6 +15,8 @@
 - [x] **Forge**: Minecraft Forge 服务端核心。
 - [x] **Fabric**: Fabric 服务端核心。
 - [x] **NeoForge**: NeoForge 服务端核心。
+- [x] **Liteloader**: LiteLoader 服务端核心。
+- [x] **Optifine**: OptiFine 下载器（仅限客户端）。
 - [ ] **Paper**: Paper 服务端核心。
 - [ ] **Spigot**: Spigot 服务端核心。
 - [ ] **Bukkit**: Bukkit 服务端核心。
@@ -28,8 +30,7 @@ minecraft_server_downloader/
 ├── src/
 │   ├── __init__.py
 │   ├── main_app.py        # 主应用程序窗口
-│   ├── downloader.py      # 下载逻辑和BMCLAPI接口
-│   └── ui_elements.py     # UI组件的定义（可选）
+│   └── downloader.py      # 下载逻辑和BMCLAPI接口
 ├── resources/
 │   └── icon.ico           # 应用程序图标
 ├── README.md              # 项目说明
@@ -74,5 +75,3 @@ minecraft_server_downloader/
 
 ## 许可证
 本项目使用 MIT 许可证。请查看 [LICENSE](LICENSE) 文件了解详细信息。
-
-"# MinecraftServerjarDownlownder" 

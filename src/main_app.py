@@ -199,8 +199,9 @@ class MinecraftServerDownloaderApp(QWidget):
         self.mc_version_combo.currentIndexChanged.connect(self.on_mc_version_selected)
         self.signals.log_message.emit("初始数据加载完成。")
         self.set_ui_enabled(True) 
-
-
+        # 自动触发选择第一个版本，加载核心类型
+        if mc_versions:
+            self.on_mc_version_selected()
 
     def on_mc_version_selected(self):
         """当 Minecraft 版本选择改变时触发"""
@@ -241,9 +242,10 @@ class MinecraftServerDownloaderApp(QWidget):
         # 重新连接
         self.server_type_combo.currentIndexChanged.connect(self.on_server_type_selected)
         self.set_ui_enabled(True) 
-
-        # 数据加载完成后，清理刚刚完成的服务端类型加载线程
         self._stop_and_cleanup_thread('server_type_loader_thread', 'server_type_loader_worker')
+        # 自动触发选择第一个核心类型，加载核心版本
+        if server_types:
+            self.on_server_type_selected()
 
     def on_server_type_selected(self):
         """当服务端核心类型选择改变时触发"""
@@ -277,9 +279,8 @@ class MinecraftServerDownloaderApp(QWidget):
         else:
             self.signals.log_message.emit("未能找到核心版本。")
         self.set_ui_enabled(True) 
-
-        # 数据加载完成后，清理刚刚完成的核心版本加载线程
         self._stop_and_cleanup_thread('core_version_loader_thread', 'core_version_loader_worker')
+        # 自动选中第一个核心版本
 
     def start_download_process(self):
         """开始下载按钮的槽函数"""
