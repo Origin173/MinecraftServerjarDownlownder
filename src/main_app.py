@@ -23,11 +23,14 @@ class MinecraftServerDownloaderApp(QWidget):
         # 设置窗口图标 (确保 resources/icon.ico 或 icon.png 存在)
         icon_path_ico = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.ico')
         icon_path_png = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.png')
+        icon_path_svg = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.svg')
 
         if os.path.exists(icon_path_ico):
             self.setWindowIcon(QIcon(icon_path_ico))
         elif os.path.exists(icon_path_png):
             self.setWindowIcon(QIcon(icon_path_png))
+        elif os.path.exists(icon_path_svg):
+            self.setWindowIcon(QIcon(icon_path_svg))
 
         # 初始化下载器逻辑类和信号
         self.downloader = BMCLAPIDownloader()
