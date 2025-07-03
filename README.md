@@ -11,15 +11,15 @@
 * 显示下载进度和日志信息。
 
 ## 目前支持列表
-- [x]**Vanilla**: 原版 Minecraft 服务端核心。
-- [x]**Forge**: Minecraft Forge 服务端核心。
-- [x]**Fabric**: Fabric 服务端核心。
-- [x]**NeoForge**: NeoForge 服务端核心。
-- []**Paper**: Paper 服务端核心。
-- []**Spigot**: Spigot 服务端核心。
-- []**Bukkit**: Bukkit 服务端核心。
-- []**CatServer**: CatServer 服务端核心。
-- []**Mohist**: Mohist 服务端核心。
+- [x] **Vanilla**: 原版 Minecraft 服务端核心。
+- [x] **Forge**: Minecraft Forge 服务端核心。
+- [x] **Fabric**: Fabric 服务端核心。
+- [x] **NeoForge**: NeoForge 服务端核心。
+- [] **Paper**: Paper 服务端核心。
+- [] **Spigot**: Spigot 服务端核心。
+- [] **Bukkit**: Bukkit 服务端核心。
+- [] **CatServer**: CatServer 服务端核心。
+- [] **Mohist**: Mohist 服务端核心。
 
 ## 目录结构
 
