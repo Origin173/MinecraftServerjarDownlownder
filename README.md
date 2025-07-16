@@ -24,17 +24,11 @@
 
 ### BMCL API
 - **支持的服务端类型**: Vanilla, Forge, Fabric, NeoForge, OptiFine
-- **特点**: 稳定可靠，国内访问速度快，版本齐全（94个Minecraft版本）
-- **适用场景**: 常用服务端类型的下载，适合个人开发者
+- **特点**: 稳定可靠，国内访问速度快，版本齐全
 
 ### MSL API V3
 - **支持的服务端类型**: 30+种服务端类型，包括所有主流服务端
 - **特点**: 功能全面，支持服务端分类、公告查询、Java版本管理
-- **独有功能**: 
-  - 📢 实时公告查询
-  - 📋 服务端分类管理（插件核心、模组核心、原版核心等8大分类）
-  - ☕ Java版本查询（Java8, Java11, Java17, Java21）
-  - 🎛️ 设备ID管理和持久化
 
 ## 📦 支持的服务端类型
 
@@ -137,12 +131,6 @@ python run.py
    - 查看实时下载进度和日志信息
    - 下载完成的文件将保存在 `server_cores` 目录中
 
-### MSL API 独有功能
-
-- **📢 公告查询**: 实时获取MSL官方公告
-- **📊 服务端分类**: 按功能分类查看服务端（插件核心、模组核心等）
-- **☕ Java版本查询**: 查看支持的Java版本（Java8, Java11, Java17, Java21）
-- **🎛️ 设备管理**: 自动生成和管理设备ID
 ### 📝 特殊说明
 
 - **Fabric 服务端**: 下载的是 Fabric 安装器，需要按照 Fabric 官方文档进行安装
@@ -150,21 +138,6 @@ python run.py
 - **版本兼容性**: 不同服务端类型对 Minecraft 版本的支持程度不同
 - **设备ID**: MSL API 会自动生成设备ID并保存在 `device_id.json` 中
 
-### 💡 使用技巧
-
-1. **选择合适的镜像源**:
-   - **BMCL API**: 适合下载常用服务端类型，稳定性好
-   - **MSL API**: 适合需要更多服务端选择和高级功能的用户
-
-2. **版本选择建议**:
-   - 生产环境建议使用稳定的发布版本
-   - 测试环境可以尝试较新的版本
-   - 注意服务端类型与 Minecraft 版本的兼容性
-
-3. **性能优化**:
-   - 定期清理 `server_cores` 目录中的旧文件
-   - 使用稳定的网络连接以提高下载速度
-   - 根据服务器配置选择合适的服务端类型
 
 ### 🔧 高级配置
 
@@ -221,53 +194,6 @@ MSL API 使用设备ID进行身份识别，相关文件：
     python run.py
     ```
 
-## 🛠️ 故障排除
-
-### 常见问题解决方案
-
-#### 1. 程序启动失败 (退出代码 -1073740791)
-这通常是由于以下原因导致的：
-- **PyQt5 版本问题**: 确保使用兼容的 PyQt5 版本
-- **依赖包缺失**: 运行 `pip install -r requirements.txt` 重新安装依赖
-- **Python 版本不兼容**: 确保使用 Python 3.6+
-
-**解决方法**:
-```bash
-# 使用安全启动脚本
-python run_safe.py
-
-# 或者重新安装依赖
-pip uninstall PyQt5 PyQt5-tools
-pip install PyQt5==5.15.9
-```
-
-#### 2. 下载功能异常
-- **网络连接问题**: 确保网络连接正常
-- **API 服务异常**: 尝试切换到另一个镜像源
-- **文件权限问题**: 确保程序有写入 `server_cores` 目录的权限
-
-#### 3. MSL API 功能限制
-- 某些 MSL API 端点可能暂时不可用
-- 设备ID 会自动生成并保存在 `device_id.json` 中
-- 如遇到问题，请删除 `device_id.json` 文件重新生成
-
-### 调试模式
-如果遇到问题，可以使用调试模式运行：
-```bash
-python -c "
-import sys
-sys.path.insert(0, '.')
-from src.main_app import MinecraftServerDownloaderApp
-from PyQt5.QtWidgets import QApplication
-
-app = QApplication(sys.argv)
-window = MinecraftServerDownloaderApp()
-window.show()
-app.exec_()
-"
-```
-
-
 ## 🎯 API 状态
 
 | 功能 | BMCL API | MSL API | 状态 |
@@ -283,17 +209,10 @@ app.exec_()
 
 欢迎提出问题和贡献代码！
 
-### 贡献指南
-1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
 
 ### 问题反馈
 - 🐛 Bug 报告: 请提供详细的错误信息和复现步骤
 - 💡 功能建议: 欢迎提出新的功能需求
-- 📝 文档改进: 帮助完善项目文档
 
 ## 🙏 致谢
 
