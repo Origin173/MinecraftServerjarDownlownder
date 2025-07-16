@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QThread
 from PyQt5.QtGui import QFont, QIcon
 from src.downloader import (
+    UnifiedDownloader,
     BMCLAPIDownloader,
     DownloaderSignals,
     DataLoaderWorker,
@@ -20,7 +21,7 @@ class MinecraftServerDownloaderApp(QWidget):
         self.setWindowTitle("Minecraft 服务端核心下载器")
         self.setFixedSize(650, 600)
 
-        # 设置窗口图标 (确保 resources/icon.ico 或 icon.png 存在)
+        # 设置窗口图标 
         icon_path_ico = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.ico')
         icon_path_png = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.png')
         icon_path_svg = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'resources', 'icon.svg')
@@ -32,15 +33,14 @@ class MinecraftServerDownloaderApp(QWidget):
         elif os.path.exists(icon_path_svg):
             self.setWindowIcon(QIcon(icon_path_svg))
 
-        # 初始化下载器逻辑类和信号
-        self.downloader = BMCLAPIDownloader()
-        self.signals = DownloaderSignals()
+        # 初始化统一下载器和信号
+        self.downloader = UnifiedDownloader()
+        self.signals = self.downloader.signals
 
         # 连接信号与槽
         self.signals.log_message.connect(self.log)
         self.signals.progress_update.connect(self.update_progress)
-        self.signals.download_finished.connect(self.on_download_finished)
-        self.downloader.signals = self.signals 
+        self.signals.download_finished.connect(self.on_download_finished) 
 
         # 初始化线程和工作者引用为 None
         self.download_thread = None
@@ -67,6 +67,18 @@ class MinecraftServerDownloaderApp(QWidget):
         options_group.setFont(QFont("Segoe UI", 10, QFont.Bold))
         options_layout = QVBoxLayout()
         options_group.setLayout(options_layout)
+
+        # 下载源选择
+        source_layout = QHBoxLayout()
+        source_layout.addWidget(QLabel("下载源:"))
+        self.source_combo = QComboBox()
+        self.source_combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.source_combo.addItems(["BMCL API", "MSL API"])
+        self.source_combo.setCurrentIndex(0)  # 默认选择BMCL API
+        self.source_combo.setToolTip("选择下载镜像源\nBMCL API: 支持原版、Forge、Fabric、NeoForge、LiteLoader\nMSL API: 支持原版、Forge、Fabric、NeoForge、Bukkit、Paper、Spigot等")
+        self.source_combo.currentIndexChanged.connect(self.on_source_changed)
+        source_layout.addWidget(self.source_combo)
+        options_layout.addLayout(source_layout)
 
         # Minecraft 版本选择
         mc_version_layout = QHBoxLayout()
@@ -131,6 +143,22 @@ class MinecraftServerDownloaderApp(QWidget):
         """将消息添加到日志文本区域"""
         self.log_text.append(message)
         self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
+
+    def on_source_changed(self):
+        """当下载源选择改变时触发"""
+        source_index = self.source_combo.currentIndex()
+        source_name = "bmcl" if source_index == 0 else "msl"
+        source_display = "BMCL API" if source_index == 0 else "MSL API"
+        
+        self.downloader.switch_source(source_name)
+        self.signals.log_message.emit(f"已切换到 {source_display} 镜像源")
+        
+        # 清空现有选择
+        self.server_type_combo.clear()
+        self.core_version_combo.clear()
+        
+        # 重新加载数据
+        self.load_initial_data()
 
     def update_progress(self, value):
         """更新进度条"""
@@ -197,10 +225,13 @@ class MinecraftServerDownloaderApp(QWidget):
         if mc_versions:
             self.mc_version_combo.setCurrentIndex(0)
         else:
-            self.signals.log_message.emit("未能加载 Minecraft 版本列表，请检查网络连接或稍后重试。")
+            source_name = "BMCL API" if self.downloader.current_source == "bmcl" else "MSL API"
+            self.signals.log_message.emit(f"从 {source_name} 未能加载 Minecraft 版本列表，请检查网络连接或稍后重试。")
 
         self.mc_version_combo.currentIndexChanged.connect(self.on_mc_version_selected)
-        self.signals.log_message.emit("初始数据加载完成。")
+        
+        source_name = "BMCL API" if self.downloader.current_source == "bmcl" else "MSL API"
+        self.signals.log_message.emit(f"使用 {source_name} 初始数据加载完成。")
         self.set_ui_enabled(True) 
         # 自动触发选择第一个版本，加载核心类型
         if mc_versions:
@@ -214,7 +245,8 @@ class MinecraftServerDownloaderApp(QWidget):
             self.core_version_combo.clear()
             return
 
-        self.signals.log_message.emit(f"你选择了 Minecraft 版本: {selected_mc_version}")
+        source_name = "BMCL API" if self.downloader.current_source == "bmcl" else "MSL API"
+        self.signals.log_message.emit(f"你选择了 Minecraft 版本: {selected_mc_version} (使用 {source_name})")
         self.set_ui_enabled(False, exclude_mc_version=True) 
 
         # 停止并清理旧的服务端类型加载线程
@@ -259,7 +291,8 @@ class MinecraftServerDownloaderApp(QWidget):
             self.core_version_combo.clear()
             return
 
-        self.signals.log_message.emit(f"你选择了服务端核心类型: {selected_server_type.capitalize()}")
+        source_name = "BMCL API" if self.downloader.current_source == "bmcl" else "MSL API"
+        self.signals.log_message.emit(f"你选择了服务端核心类型: {selected_server_type.capitalize()} (使用 {source_name})")
         self.set_ui_enabled(False, exclude_mc_version=True, exclude_server_type=True) 
         # 停止并清理旧的核心版本加载线程
         self._stop_and_cleanup_thread('core_version_loader_thread', 'core_version_loader_worker')
@@ -316,7 +349,7 @@ class MinecraftServerDownloaderApp(QWidget):
         self._stop_and_cleanup_thread('download_thread', 'download_worker')
 
         self.download_thread = QThread()
-        self.download_worker = DownloadWorker(self.downloader, download_link, file_path)
+        self.download_worker = DownloadWorker(self.downloader, download_link, download_dir, file_name)
         self.download_worker.moveToThread(self.download_thread)
 
         self.download_thread.started.connect(self.download_worker.run)
@@ -341,6 +374,7 @@ class MinecraftServerDownloaderApp(QWidget):
 
     def set_ui_enabled(self, enabled, exclude_mc_version=False, exclude_server_type=False):
         """统一控制UI元素的启用/禁用状态"""
+        self.source_combo.setEnabled(enabled)
         if not exclude_mc_version:
             self.mc_version_combo.setEnabled(enabled)
         if not exclude_server_type:
